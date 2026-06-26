@@ -63,17 +63,17 @@ func (w *boxPlatformInterfaceWrapper) OpenTun(options *tun.Options, platformOpti
 	a, _ := json.Marshal(options)
 	b, _ := json.Marshal(platformOptions)
 	tunFd, err := intfBox.OpenTun(string(a), string(b))
-    if err != nil {
-        return nil, fmt.Errorf("intfBox.OpenTun: %v", err)
-    }
-    newFd, err := syscall.Dup(tunFd)
-    if err != nil {
-        return nil, fmt.Errorf("syscall.Dup: %v", err)
-    }
-    // 关闭原始 fd，只保留 dup 后的
-    syscall.Close(tunFd)
-    options.FileDescriptor = int(newFd)
-    return tun.New(*options)
+	if err != nil {
+		return nil, fmt.Errorf("intfBox.OpenTun: %v", err)
+	}
+	// Do you want to close it?
+	tunFd, err = syscall.Dup(tunFd)
+	if err != nil {
+		return nil, fmt.Errorf("syscall.Dup: %v", err)
+	}
+	//
+	options.FileDescriptor = int(tunFd)
+	return tun.New(*options)
 }
 
 func (w *boxPlatformInterfaceWrapper) CloseTun() error {
